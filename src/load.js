@@ -29,94 +29,15 @@
         LOADING    = 3,
         LOADED     = 4;
 
-    // Method 1: simply load and let browser take care of ordering
-    if (isAsync) {
-        api.load = function () {
-            ///<summary>
-            /// INFO: use cases
-            ///    head.load("http://domain.com/file.js","http://domain.com/file.js", callBack)
-            ///    head.load({ label1: "http://domain.com/file.js" }, { label2: "http://domain.com/file.js" }, callBack)
-            ///</summary> 
-            var args      = arguments,
-                 callback = args[args.length - 1],
-                 items    = {};
+    // Exported function names
+    // INFO: determine which method to use for loading
+    api.load  = api.js  = isAsync ? apiLoadAsync : apiLoadHack;
+    api.test  = conditional;
+    api.ready = ready;
 
-            if (!isFunction(callback)) {
-                callback = null;
-            }
-            
-            if (isArray(args[0])) {
-                args[0].push(callback);
-                api.load.apply(null, args[0]);
-                
-                return api;
-            }
-
-            each(args, function (item, i) {
-                if (item !== callback) {
-                    item             = getAsset(item);
-                    items[item.name] = item;
-
-                    load(item, callback && (item.async || i === args.length - 2) ? function () {
-                        if (allLoaded(items)) {
-                            one(callback);
-                        }
-
-                    } : null);
-                }
-            });
-
-            return api;
-        };
-
-
-    // Method 2: preload with text/cache hack
-    } else {
-        api.load = function () {
-            var args = arguments,
-                rest = [].slice.call(args, 1),
-                next = rest[0];
-
-            // wait for a while. immediate execution causes some browsers to ignore caching
-            if (!isHeadReady) {
-                queue.push(function () {
-                    api.load.apply(null, args);
-                });
-
-                return api;
-            }
-            
-            // multiple arguments
-            if (!!next) {
-                /* Preload with text/cache hack (not good!)
-                 * http://blog.getify.com/on-script-loaders/
-                 * http://www.nczonline.net/blog/2010/12/21/thoughts-on-script-loaders/
-                 * If caching is not configured correctly on the server, then items could load twice !
-                 *************************************************************************************/
-                each(rest, function (item) {
-                    if (!isFunction(item) && !!item) {
-                        preLoad(getAsset(item));
-                    }
-                });
-                
-                // execute
-                load(getAsset(args[0]), isFunction(next) ? next : function () {
-                    api.load.apply(null, rest);
-                });                
-            }
-            else {
-                // single item
-                load(getAsset(args[0]));
-            }
-
-            return api;
-        };
-    }
-
-    // INFO: for retro compatibility
-    api.js = api.load;
-    
-    api.test = function (test, success, failure, callback) {
+    /* private functions
+    *********************/
+    function conditional(test, success, failure, callback) {
         ///<summary>
         /// INFO: use cases:
         ///    head.test(condition, null       , "file.NOk" , callback);
@@ -161,9 +82,9 @@
         }
 
         return api;
-    };
-
-    api.ready = function (key, callback) {
+    }
+ 
+    function ready(key, callback) {
         ///<summary>
         /// INFO: use cases:
         ///    head.ready(callBack)
@@ -230,26 +151,94 @@
         }
 
         return api;
-    };
+    }
 
+    function apiLoadHack() {
+        /// <summary>preload with text/cache hack
+        /// 
+        /// head.load("http://domain.com/file.js","http://domain.com/file.js", callBack)
+        /// head.load({ label1: "http://domain.com/file.js" }, { label2: "http://domain.com/file.js" }, callBack)
+        /// </summary>
 
-    // perform this when DOM is ready
-    api.ready(doc, function () {
+        var args = arguments,
+            rest = [].slice.call(args, 1),
+            next = rest[0];
 
-        if (allLoaded()) {
-            each(handlers.ALL, function (callback) {
-                one(callback);
+        // wait for a while. immediate execution causes some browsers to ignore caching
+        if (!isHeadReady) {
+            queue.push(function () {
+                api.load.apply(null, args);
             });
+
+            return api;
+        }
+            
+        // multiple arguments
+        if (!!next) {
+            /* Preload with text/cache hack (not good!)
+                * http://blog.getify.com/on-script-loaders/
+                * http://www.nczonline.net/blog/2010/12/21/thoughts-on-script-loaders/
+                * If caching is not configured correctly on the server, then items could load twice !
+                *************************************************************************************/
+            each(rest, function (item) {
+                if (!isFunction(item) && !!item) {
+                    preLoad(getAsset(item));
+                }
+            });
+                
+            // execute
+            load(getAsset(args[0]), isFunction(next) ? next : function () {
+                api.load.apply(null, rest);
+            });                
+        }
+        else {
+            // single item
+            load(getAsset(args[0]));
         }
 
-        if (api.feature) {
-            api.feature("domloaded", true);
+        return api;        
+    }
+    
+    function apiLoadAsync() {
+        ///<summary>
+        /// simply load and let browser take care of ordering
+        /// 
+        /// head.load("http://domain.com/file.js","http://domain.com/file.js", callBack)
+        /// head.load({ label1: "http://domain.com/file.js" }, { label2: "http://domain.com/file.js" }, callBack)
+        ///</summary>
+
+        var args     = arguments,
+            callback = args[args.length - 1],
+            items    = {};
+
+        if (!isFunction(callback)) {
+            callback = null;
         }
-    });
+            
+        if (isArray(args[0])) {
+            args[0].push(callback);
+            api.load.apply(null, args[0]);
+                
+            return api;
+        }
 
+        each(args, function (item, i) {
+            if (item !== callback) {
+                item             = getAsset(item);
+                items[item.name] = item;
 
-    /* private functions
-    *********************/
+                load(item, callback && (item.async || i === args.length - 2) ? function () {
+                    if (allLoaded(items)) {
+                        one(callback);
+                    }
+
+                } : null);
+            }
+        });
+
+        return api;        
+    }
+
     function noop() {
         // does nothing
     }
@@ -365,7 +354,6 @@
         return true;
     }
 
-
     function onPreload(asset) {
         asset.state = PRELOADED;
 
@@ -400,7 +388,7 @@
             api.ready(asset.name, callback);
             return;
         }
-
+        
         if (asset.state === PRELOADING) {
             asset.onpreload.push(function () {
                 load(asset, callback);
@@ -541,7 +529,6 @@
         head.insertBefore(ele, head.lastChild);
     }
     
-
     /* Parts inspired from: https://github.com/jrburke/requirejs
     ************************************************************/
     function init() {
@@ -647,6 +634,20 @@
         }
     }
 
+    // perform this when DOM is ready
+    api.ready(doc, function () {
+
+        if (allLoaded()) {
+            each(handlers.ALL, function (callback) {
+                one(callback);
+            });
+        }
+
+        if (api.feature) {
+            api.feature("domloaded", true);
+        }
+    });
+    
     /*
         We wait for 300 ms before asset loading starts. for some reason this is needed
         to make sure assets are cached. Not sure why this happens yet. A case study:
