@@ -1,12 +1,27 @@
-﻿..in progress
- - Detect Windows 8 Mobile
- - Add browser & version systematically no matter what configured
+﻿1.0
+..in progress
+
+ - * Detect Windows 8 Mobile, Kindle, and other Android devices
+ - * Add browser & version systematically no matter what configured
    - example: .ff .ff20
    - there is no need to cycle through all browser versions in 90% of cases
-   - currently testing: https://github.com/headjs/headjs/pull/212
-     - trigger ready on multiple labels .ready(['jQuery', 'jQueryUI'])
-	 - allow passing async=true to load options
+   - trigger ready on multiple labels: .ready(['jQuery', 'jQueryUI'])
+     - https://github.com/headjs/headjs/pull/212
+ - * Improved CSS Router
    - https://github.com/headjs/headjs/issues/227
+ - * Added "main" HTML5 element to shim
+   - https://github.com/headjs/headjs/pull/230
+ - Load file via data attribute on HeadJS script tag
+   - https://github.com/headjs/headjs/pull/213
+ - Add options as a property label
+   - https://github.com/headjs/headjs/pull/215
+ - Allow ASYNC loading
+   - https://github.com/headjs/headjs/issues/204
+ - Prevent loading empty strings
+   - https://github.com/headjs/headjs/pull/184
+ - * Fixed CSS classes getting bigger on successive resizes under Chrome
+   - https://github.com/headjs/headjs/issues/226
+ - * Cleaned up a bunch of syntaxt to conform to JSHint
 
 0.99
  - Load: Fixed regression in IE6, caused by IE10 fix
