@@ -1,5 +1,5 @@
 <!doctype html>
-<html class=" js-false">
+<html class=" no-js">
     <head>
         <meta charset="utf-8"/>
         <title>Head.JS Unit Tests</title>
@@ -12,8 +12,7 @@
 			// BrowserScope Results
             var _bTestResults = {};           
         </script>
-        <script type="text/javascript" src="../../media/libs/headjs/0.99/head.min.js"></script>
-        <script type="text/javascript" src="../../dist/head.min.js"></script>
+        <script type="text/javascript" src="../../dist/head.js"></script>
 
         <style>
             body {
@@ -77,7 +76,7 @@
             
             // Send browserscope results
             QUnit.done(function (details) {
-                head.load("http://www.browserscope.org/user/beacon/" + "agt1YS1wcm9maWxlcnINCxIEVGVzdBjn5PUSDA");
+                //head.load("http://www.browserscope.org/user/beacon/" + "agt1YS1wcm9maWxlcnINCxIEVGVzdBjn5PUSDA");
             });
         </script>
     </body>

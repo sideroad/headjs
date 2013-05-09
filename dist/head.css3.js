@@ -211,7 +211,8 @@
     each(loc.pathname.split("/"), function (el, i) {
         if (this.length > 2 && this[i + 1] !== undefined) {
             if (i) {
-                pushClass(this.slice(1, i + 1).join("-").toLowerCase() + conf.section);
+                // https://github.com/headjs/headjs/issues/227
+                pushClass(this.slice(i, i + 1).join("-").toLowerCase() + conf.section);
             }
         } else {
             // pageId

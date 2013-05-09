@@ -36,209 +36,8 @@
     api.ready = ready;
 
     /* private functions
-    *********************/
-    function conditional(test, success, failure, callback) {
-        ///<summary>
-        /// INFO: use cases:
-        ///    head.test(condition, null       , "file.NOk" , callback);
-        ///    head.test(condition, "fileOk.js", null       , callback);        
-        ///    head.test(condition, "fileOk.js", "file.NOk" , callback);
-        ///    head.test(condition, "fileOk.js", ["file.NOk", "file.NOk"], callback);
-        ///    head.test({
-        ///               test    : condition,
-        ///               success : [{ label1: "file1Ok.js"  }, { label2: "file2Ok.js" }],
-        ///               failure : [{ label1: "file1NOk.js" }, { label2: "file2NOk.js" }],
-        ///               callback: callback
-        ///    );  
-        ///    head.test({
-        ///               test    : condition,
-        ///               success : ["file1Ok.js" , "file2Ok.js"],
-        ///               failure : ["file1NOk.js", "file2NOk.js"],
-        ///               callback: callback
-        ///    );         
-        ///</summary>    
-        var obj = (typeof test === 'object') ? test : {
-            test: test,
-            success: !!success ? isArray(success) ? success : [success] : false,
-            failure: !!failure ? isArray(failure) ? failure : [failure] : false,
-            callback: callback || noop
-        };
-
-        // Test Passed ?
-        var passed = !!obj.test;
-
-        // Do we have a success case
-        if (passed && !!obj.success) {
-            obj.success.push(obj.callback);
-            api.load.apply(null, obj.success);
-        }
-            // Do we have a fail case
-        else if (!passed && !!obj.failure) {
-            obj.failure.push(obj.callback);
-            api.load.apply(null, obj.failure);
-        }
-        else {
-            callback();
-        }
-
-        return api;
-    }
- 
-    function ready(key, callback) {
-        ///<summary>
-        /// INFO: use cases:
-        ///    head.ready(callBack)
-        ///    head.ready(document , callBack)
-        ///    head.ready("file.js", callBack);
-        ///    head.ready("label"  , callBack);
-        ///    head.ready(["label1", "label2"], callback);
-        ///</summary>
-
-        // DOM ready check: head.ready(document, function() { });
-        if (key === doc) {
-            if (isDomReady) {
-                one(callback);
-            }
-            else {
-                domWaiters.push(callback);
-            }
-
-            return api;
-        }
-
-        // shift arguments
-        if (isFunction(key)) {
-            callback = key;
-            key      = "ALL";
-        }
-
-        // queue all items from key and return. The callback will be executed if all items from key are already loaded.
-        if (isArray(key)) {
-            var items = {};
-
-            each(key, function (item) {
-
-                items[item] = assets[item];
-                api.ready(item, function() {
-                    allLoaded(items) && one(callback);
-                });
-
-            });
-
-            return api;
-        }
-
-        // make sure arguments are sane
-        if (typeof key !== 'string' || !isFunction(callback)) {
-            return api;
-        }
-
-        // This can also be called when we trigger events based on filenames & labels
-        var asset = assets[key];
-
-        // item already loaded --> execute and return
-        if (asset && asset.state === LOADED || key === 'ALL' && allLoaded() && isDomReady) {
-            one(callback);
-            return api;
-        }
-
-        var arr = handlers[key];
-        if (!arr) {
-            arr = handlers[key] = [callback];
-        }
-        else {
-            arr.push(callback);
-        }
-
-        return api;
-    }
-
-    function apiLoadHack() {
-        /// <summary>preload with text/cache hack
-        /// 
-        /// head.load("http://domain.com/file.js","http://domain.com/file.js", callBack)
-        /// head.load({ label1: "http://domain.com/file.js" }, { label2: "http://domain.com/file.js" }, callBack)
-        /// </summary>
-
-        var args = arguments,
-            rest = [].slice.call(args, 1),
-            next = rest[0];
-
-        // wait for a while. immediate execution causes some browsers to ignore caching
-        if (!isHeadReady) {
-            queue.push(function () {
-                api.load.apply(null, args);
-            });
-
-            return api;
-        }
-            
-        // multiple arguments
-        if (!!next) {
-            /* Preload with text/cache hack (not good!)
-                * http://blog.getify.com/on-script-loaders/
-                * http://www.nczonline.net/blog/2010/12/21/thoughts-on-script-loaders/
-                * If caching is not configured correctly on the server, then items could load twice !
-                *************************************************************************************/
-            each(rest, function (item) {
-                if (!isFunction(item) && !!item) {
-                    preLoad(getAsset(item));
-                }
-            });
-                
-            // execute
-            load(getAsset(args[0]), isFunction(next) ? next : function () {
-                api.load.apply(null, rest);
-            });                
-        }
-        else {
-            // single item
-            load(getAsset(args[0]));
-        }
-
-        return api;        
-    }
-    
-    function apiLoadAsync() {
-        ///<summary>
-        /// simply load and let browser take care of ordering
-        /// 
-        /// head.load("http://domain.com/file.js","http://domain.com/file.js", callBack)
-        /// head.load({ label1: "http://domain.com/file.js" }, { label2: "http://domain.com/file.js" }, callBack)
-        ///</summary>
-
-        var args     = arguments,
-            callback = args[args.length - 1],
-            items    = {};
-
-        if (!isFunction(callback)) {
-            callback = null;
-        }
-            
-        if (isArray(args[0])) {
-            args[0].push(callback);
-            api.load.apply(null, args[0]);
-                
-            return api;
-        }
-
-        each(args, function (item, i) {
-            if (item !== callback) {
-                item             = getAsset(item);
-                items[item.name] = item;
-
-                load(item, callback && (item.async || i === args.length - 2) ? function () {
-                    if (allLoaded(items)) {
-                        one(callback);
-                    }
-
-                } : null);
-            }
-        });
-
-        return api;        
-    }
-
+    *********************/    
+    //#region Helper functions
     function noop() {
         // does nothing
     }
@@ -295,6 +94,55 @@
 
         callback();
         callback._done = 1;
+        
+    }    
+    //#endregion
+        
+    function conditional(test, success, failure, callback) {
+        ///<summary>
+        /// INFO: use cases:
+        ///    head.test(condition, null       , "file.NOk" , callback);
+        ///    head.test(condition, "fileOk.js", null       , callback);        
+        ///    head.test(condition, "fileOk.js", "file.NOk" , callback);
+        ///    head.test(condition, "fileOk.js", ["file.NOk", "file.NOk"], callback);
+        ///    head.test({
+        ///               test    : condition,
+        ///               success : [{ label1: "file1Ok.js"  }, { label2: "file2Ok.js" }],
+        ///               failure : [{ label1: "file1NOk.js" }, { label2: "file2NOk.js" }],
+        ///               callback: callback
+        ///    );  
+        ///    head.test({
+        ///               test    : condition,
+        ///               success : ["file1Ok.js" , "file2Ok.js"],
+        ///               failure : ["file1NOk.js", "file2NOk.js"],
+        ///               callback: callback
+        ///    );         
+        ///</summary>    
+        var obj = (typeof test === 'object') ? test : {
+            test: test,
+            success: !!success ? isArray(success) ? success : [success] : false,
+            failure: !!failure ? isArray(failure) ? failure : [failure] : false,
+            callback: callback || noop
+        };
+
+        // Test Passed ?
+        var passed = !!obj.test;
+
+        // Do we have a success case
+        if (passed && !!obj.success) {
+            obj.success.push(obj.callback);
+            api.load.apply(null, obj.success);
+        }
+            // Do we have a fail case
+        else if (!passed && !!obj.failure) {
+            obj.failure.push(obj.callback);
+            api.load.apply(null, obj.failure);
+        }
+        else {
+            callback();
+        }
+
+        return api;
     }
 
     function getAsset(item) {
@@ -372,6 +220,92 @@
                 onPreload(asset);
             });
         }
+    }
+    
+
+    function apiLoadHack() {
+        /// <summary>preload with text/cache hack
+        /// 
+        /// head.load("http://domain.com/file.js","http://domain.com/file.js", callBack)
+        /// head.load({ label1: "http://domain.com/file.js" }, { label2: "http://domain.com/file.js" }, callBack)
+        /// </summary>
+
+        var args = arguments,
+            rest = [].slice.call(args, 1),
+            next = rest[0];
+
+        // wait for a while. immediate execution causes some browsers to ignore caching
+        if (!isHeadReady) {
+            queue.push(function () {
+                api.load.apply(null, args);
+            });
+
+            return api;
+        }
+            
+        // multiple arguments
+        if (!!next) {
+            /* Preload with text/cache hack (not good!)
+                * http://blog.getify.com/on-script-loaders/
+                * http://www.nczonline.net/blog/2010/12/21/thoughts-on-script-loaders/
+                * If caching is not configured correctly on the server, then items could load twice !
+                *************************************************************************************/
+            each(rest, function (item) {
+                if (!isFunction(item) && !!item) {
+                    preLoad(getAsset(item));
+                }
+            });
+                
+            // execute
+            load(getAsset(args[0]), isFunction(next) ? next : function () {
+                api.load.apply(null, rest);
+            });                
+        }
+        else {
+            // single item
+            load(getAsset(args[0]));
+        }
+
+        return api;        
+    }
+    
+    function apiLoadAsync() {
+        ///<summary>
+        /// simply load and let browser take care of ordering
+        /// 
+        /// head.load("http://domain.com/file.js","http://domain.com/file.js", callBack)
+        /// head.load({ label1: "http://domain.com/file.js" }, { label2: "http://domain.com/file.js" }, callBack)
+        ///</summary>
+        var args     = arguments,
+            callback = args[args.length - 1],
+            items    = {};
+
+        if (!isFunction(callback)) {
+            callback = null;
+        }
+
+        if (isArray(args[0])) {
+            args[0].push(callback);
+            api.load.apply(null, args[0]);
+                
+            return api;
+        }
+
+        each(args, function (item, i) {            
+            if (item !== callback) {
+                item             = getAsset(item);
+                items[item.name] = item;
+                
+                load(item, callback && (item.async || i === args.length - 2) ? function () {
+                    if (allLoaded(items)) {
+                        one(callback);
+                    }
+
+                } : null);
+            }
+        });
+
+        return api;        
     }
 
     function load(asset, callback) {
@@ -525,7 +459,7 @@
 
         // use insertBefore to keep IE from throwing Operation Aborted (thx Bryan Forbes!)
         var head = doc.head || doc.getElementsByTagName('head')[0];
-        // but insert at end of head, because otherwise if it is a stylesheet, it will not ovverride values
+        // but insert at end of head, because otherwise if it is a stylesheet, it will not override values
         head.insertBefore(ele, head.lastChild);
     }
     
@@ -542,6 +476,75 @@
                 return;
             } 
         }
+    }
+    
+    function ready(key, callback) {
+        ///<summary>
+        /// INFO: use cases:
+        ///    head.ready(callBack)
+        ///    head.ready(document , callBack)
+        ///    head.ready("file.js", callBack);
+        ///    head.ready("label"  , callBack);
+        ///    head.ready(["label1", "label2"], callback);
+        ///</summary>
+
+        // DOM ready check: head.ready(document, function() { });
+        if (key === doc) {
+            if (isDomReady) {
+                one(callback);
+            }
+            else {
+                domWaiters.push(callback);
+            }
+
+            return api;
+        }
+
+        // shift arguments
+        if (isFunction(key)) {
+            callback = key;
+            key      = "ALL";
+        }
+
+        // queue all items from key and return. The callback will be executed if all items from key are already loaded.
+        if (isArray(key)) {
+            var items = {};
+
+            each(key, function (item) {
+
+                items[item] = assets[item];
+                api.ready(item, function() {
+                    allLoaded(items) && one(callback);
+                });
+
+            });
+
+            return api;
+        }
+
+        // make sure arguments are sane
+        if (typeof key !== 'string' || !isFunction(callback)) {
+            return api;
+        }
+
+        // This can also be called when we trigger events based on filenames & labels
+        var asset = assets[key];
+
+        // item already loaded --> execute and return
+        if (asset && asset.state === LOADED || key === 'ALL' && allLoaded() && isDomReady) {
+            one(callback);
+            return api;
+        }
+
+        var arr = handlers[key];
+        if (!arr) {
+            arr = handlers[key] = [callback];
+        }
+        else {
+            arr.push(callback);
+        }
+
+        return api;
     }
 
     /* Mix of stuff from jQuery & IEContentLoaded

@@ -6,6 +6,7 @@
    - currently testing: https://github.com/headjs/headjs/pull/212
      - trigger ready on multiple labels .ready(['jQuery', 'jQueryUI'])
 	 - allow passing async=true to load options
+   - https://github.com/headjs/headjs/issues/227
 
 0.99
  - Load: Fixed regression in IE6, caused by IE10 fix
