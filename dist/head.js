@@ -49,7 +49,7 @@
     }
 
     function removeClass(name) {
-        var re = new RegExp("\\b" + name + "\\b");
+        var re = new RegExp(" \\b" + name + "\\b");
         html.className = html.className.replace(re, '');
     }
 
@@ -134,7 +134,6 @@
             break;
     }
 
-
     // Browser vendor and version
     api.browser = {
         name   : browser,
@@ -195,8 +194,6 @@
     pushClass(browser);
     pushClass(browser + parseInt(version, 10));
 
-
-
     // IE lt9 specific
     if (browser === "ie" && version < 9) {
         // HTML5 support : you still need to add html5 css initialization styles to your site
@@ -206,12 +203,10 @@
         });
     }
 
-
     // CSS "router"
     each(loc.pathname.split("/"), function (el, i) {
         if (this.length > 2 && this[i + 1] !== undefined) {
             if (i) {
-                // https://github.com/headjs/headjs/issues/227
                 pushClass(this.slice(i, i + 1).join("-").toLowerCase() + conf.section);
             }
         } else {
