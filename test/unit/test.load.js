@@ -67,31 +67,6 @@ var libs = (function(window, undefined) {
     };
 })(window);
 
-function getStyle(ele, styleProp) {
-    var y = "";
-
-    if (ele.currentStyle) {
-        y = ele.currentStyle[styleProp];
-    }
-    else if (window.getComputedStyle) {
-        y = document.defaultView.getComputedStyle(ele, null).getPropertyValue(styleProp);
-    }
-    
-    return y;
-}
-
-asyncTest("ready(jsFileName).load(jsFilePath)", function () {
-    expect(1);
-    
-    head.ready("jquery.min.js", function() {        
-        ok(!!jQuery, "Ready: jquery.min.js");
-        
-        start();
-    })
-    
-    .load(libs.jquery());    
-});
-
 asyncTest("load(jsFilePath, jsFilePath, callback)", function() {
     expect(2);
     
@@ -108,6 +83,18 @@ asyncTest("load(jsFilePath, jsFilePath, callback)", function() {
             start();
         }
     );
+});
+
+asyncTest("ready(jsFileName).load(jsFilePath)", function () {
+    expect(1);
+    
+    head.ready("jquery.min.js", function() {        
+        ok(!!jQuery, "Ready: jquery.min.js");
+        
+        start();
+    })
+    
+    .load(libs.jquery());    
 });
 
 asyncTest("load([ jsFilePath, jsFilePath ], callback).ready(jsFileName, callback)", function (assert) {
@@ -283,21 +270,6 @@ asyncTest("load({ label: jsFilePath, options: { callback: callback } })", functi
         }
     );
 });
-
-// INFO: will make had fail (and nothing else continues!) if file not exists
-asyncTest("ready(cssFileName).load(cssFilePath)", function () {
-    expect(1);
-
-    head.ready("test.css", function () {
-        var result = getStyle(document.getElementById("browserscope"), "display");
-        ok(result === "block", "Ready: test.css");
-
-        start();
-    })
-
-    .load("assets/test.css");
-});
-
 
 // INFO: Must be last test since it is loading HeadJS while running tests, which in turn already relies on HeadJS
 // If run as last test in suite it should be ok, since it shouldn't be a problem if we overwrite HeadJS stuff at the end
