@@ -15,7 +15,7 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" charset="UTF-8" ></script>
     <script src="../../src/load.js" charset="UTF-8" ></script>
 
-    <script src="charset.js" charset="UTF-8" ></script>
+    <script charset="UTF-8" src="charset.js" ></script>
 </head>
 
 <body>
@@ -24,7 +24,10 @@
     <h2 id="qunit-banner"></h2>
     <h2 id="qunit-userAgent"></h2>
     <ol id="qunit-tests"></ol>
-
+    <script>
+    if (location.hash === '#testem')
+        document.write('<script src="/testem.js"></'+'script>')
+    </script>
 </body>
 
 </html>
