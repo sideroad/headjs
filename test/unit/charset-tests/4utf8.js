@@ -1,0 +1,1 @@
+sjis.utf8.sjis.utf8 = {"A":"あ"};

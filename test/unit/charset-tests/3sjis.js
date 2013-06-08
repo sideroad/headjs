@@ -1,0 +1,1 @@
+sjis.utf8.sjis = {"A":"‚ "};

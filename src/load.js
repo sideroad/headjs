@@ -300,7 +300,8 @@
                 if (!!item[label]) {
                     asset = {
                         name: label,
-                        url : item[label]
+                        url : item[label],
+                        charset: item[label].split("#")[1]||"utf-8"
                     };
                 }
             }
@@ -308,7 +309,8 @@
         else {
             asset = {
                 name: toLabel(item),
-                url : item
+                url : item,
+                charset: item.split("#")[1]||"utf-8"
             };
         }
 
@@ -411,9 +413,10 @@
             ele.href = asset.url;
         }
         else {
-            ele      = doc.createElement('script');
-            ele.type = 'text/' + (asset.type || 'javascript');
-            ele.src  = asset.url;
+            ele         = doc.createElement('script');
+            ele.charset = asset.charset;
+            ele.type    = 'text/' + (asset.type || 'javascript');
+            ele.src     = asset.url;
         }
 
         ele.onload  = ele.onreadystatechange = process;
